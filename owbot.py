@@ -3,7 +3,7 @@ import requests
 import json
 
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
-BTAG = "(null)  "
+BTAG = "(null)"
 G_BTAG = "boludo00-1183" 
 
 my_bot = Bot(command_prefix = "!")
@@ -18,10 +18,40 @@ async def hello(*args):
     return await my_bot.say("hello, world")
 
 @my_bot.command()
+async def h():
+    return await my_bot.say("Available commands:\n\n" \
+                            "!login battle-tag (ex: !login john-1234)\n" \
+                            "!stats hero (Only works if you've logged in. ex: !stats Tracer) \n\n" \
+                            "Available heros:\n" \
+                            "Reaper\n" 
+                            "Tracer\n" \
+                            "Mercy\n" \
+                            "Hanzo\n" \
+                            "Torbjörn\n" \
+                            "Reinhardt\n" \
+                            "Pharah\n" \
+                            "Winston\n" \
+                            "Widowmaker\n" \
+                            "Bastion\n" \
+                            "Symmetra\n" \
+                            "Zenyatta\n" \
+                            "Genji\n" \
+                            "Roadhog\n" \
+                            "McCree\n" \
+                            "Junkrat\n" \
+                            "Zarya\n" \
+                            "Soldier: 76\n" \
+                            "Lúcio\n" \
+                            "D.Va\n" \
+                            "Mei\n" \
+                            "Sombra\n" \
+                            "Ana\n" \
+                            )
+
+@my_bot.command()
 async def login(battletag):
     global BTAG
     BTAG = battletag
-    print("to " + BTAG)
     return await my_bot.say("Logged in with: " + battletag)
 
 @my_bot.command()
@@ -31,7 +61,7 @@ async def show():
 @my_bot.command()
 async def stats(hero):
     """
-        Return the stats for requested hero.
+        Return the stats for requested hero assuming the user has already !login.
         usage:
             !stats Hanzo
     """
