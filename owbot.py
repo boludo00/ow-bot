@@ -50,9 +50,9 @@ async def stats(battletag, system, mode, hero):
     """
         Return the stats for requested hero assuming the user has already !login.
         usage:
-            !stats john-0420 pc Hanzo
-            !stats HughMungus xbox Hanzo
-            !stats MarcellusWallace ps4 Hanzo
+            !stats john-0420 pc qp Hanzo
+            !stats HughMungus xbox comp Hanzo
+            !stats MarcellusWallace psn Hanzo
     """
     
     if mode not in ["qp", "comp"]:
@@ -66,7 +66,7 @@ async def stats(battletag, system, mode, hero):
     if system == "xbox":
         platform = "xbl"
     elif system == "ps4":
-        platform = "ps4"
+        platform = "psn"
     elif system == "pc":
         need_verify = True
         platform = "pc/us/"
