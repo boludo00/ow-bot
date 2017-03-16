@@ -52,7 +52,7 @@ async def stats(battletag, system, mode, hero):
         usage:
             !stats john-0420 pc qp Hanzo
             !stats HughMungus xbox comp Hanzo
-            !stats MarcellusWallace psn Hanzo
+            !stats MarcellusWallace psn qp Hanzo
     """
     
     if mode not in ["qp", "comp"]:
