@@ -15,12 +15,10 @@ async def on_ready():
 async def h():
     return await my_bot.say("Hi! I'm a bot here to provide useful Overwatch information! " \
                            "Below are some helpful commands and examples on how to use them.\n\n" \
-                           "!stats_comp battletag platform hero\n" \
-                           "\t- Displays all competitive stats for specififc hero in the current Season.\n" \
-                           "\t- Usage: !stats_comp john-0420 pc McCree\n\n"
-                            "!stats_qp battletag platform hero\n" \
-                            "\t- Displays all quickplay stats for specific Hero.\n" \
-                            "\t- Usage: !stats_qp HanzoMain xbox Hanzo\n\n" \
+                           "!stats [battletag] [platform] [mode] [hero]\n" \
+                           "\t- Displays all stats for specififc hero.\n" \
+                           "\t- Usage:\n\t\t!stats HughMungus-0420 pc comp McCree\n" \
+                           "\t\t!stats HanzoMain69 xbox qp Bastion\n\n" \
                             "Available heros:\n" \
                             "Reaper\n" 
                             "Tracer\n" \
@@ -56,7 +54,7 @@ async def stats(battletag, system, mode, hero):
             !stats HughMungus xbox Hanzo
             !stats MarcellusWallace ps4 Hanzo
     """
-    print(mode)
+    
     if mode not in ["qp", "comp"]:
         return await my_bot.say("Oops! Please specify qp or comp.")
     elif mode == "qp":
