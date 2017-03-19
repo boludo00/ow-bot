@@ -16,9 +16,11 @@ FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 config = {
   "apiKey": "apiKey",
   "authDomain": "projectId.firebaseapp.com",
-  "databaseURL": FIREBASE,
-  "storageBucket": "projectId.appspot.com"
+  "databaseURL": "https://brilliant-torch-8374.firebaseio.com/",
+  "storageBucket": "gs://brilliant-torch-8374.appspot.com/",
+  "serviceAccount": "brilliant-torch-8374-firebase-adminsdk-3nctk-299b7654aa.json"
 }
+
 
 data = {"name": "Mortimer 'Morty' Smith"}
 
