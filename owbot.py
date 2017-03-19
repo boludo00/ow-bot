@@ -5,10 +5,27 @@ import json
 import re
 from collections import OrderedDict
 from datetime import datetime
+import pyrebase
 
 phoney_db = dict()
+test_db = dict(a="a",b="b",c="c")
 
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
+FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
+
+config = {
+  "apiKey": "apiKey",
+  "authDomain": "projectId.firebaseapp.com",
+  "databaseURL": FIREBASE,
+  "storageBucket": "projectId.appspot.com"
+}
+
+data = {"name": "Mortimer 'Morty' Smith"}
+
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
+# db.child("users").child("Morty").set(data)
+
 
 my_bot = Bot(command_prefix = "!")
 
@@ -20,8 +37,10 @@ def make_request(btag, system, mode, server=""):
     return obj
 
 def get_data(user):
-    if user in phoney_db:
-        return phoney_db[user]
+    users = db.child("owbot").get().val()
+
+    if user in users:
+        return users[user]
     else:
         return None
 
@@ -72,6 +91,9 @@ async def on_message(message):
         if server != "":
             phoney_db[snowflake].update(dict(server=server))
         
+        # add this entry to the db
+        db.child("owbot").set(phoney_db)
+
         await my_bot.send_message(message.channel, 'Say hello')
         msg = await my_bot.wait_for_message(author=message.author, content='hello')
         await my_bot.send_message(message.channel, 'Hello.')
@@ -79,10 +101,10 @@ async def on_message(message):
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
     snowflake = ctx.message.author.id
-    print(json.dumps(phoney_db, indent=4))
 
-    if snowflake in phoney_db:
-        user_data = phoney_db[snowflake]
+    users = db.child("owbot").get().val()
+    if snowflake in users:
+        user_data = users[snowflake]
         resp = get_response(user_data, mode)
             
         for key in resp:
@@ -98,7 +120,9 @@ async def statz(ctx, hero, mode):
 @my_bot.command(pass_context=True)
 async def time(ctx, mode):
     snowflake = ctx.message.author.id
-    if snowflake in phoney_db:
+    users = db.child("owbot").get().val()
+
+    if snowflake in users:
         user_data = get_data(snowflake)
         resp = get_response(user_data, mode)
         time_map = dict()
