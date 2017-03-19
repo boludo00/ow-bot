@@ -6,9 +6,17 @@ import re
 from collections import OrderedDict
 from datetime import datetime
 import pyrebase
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from pylab import *
+import os
+
+
+
 
 phoney_db = dict()
-test_db = dict(a="a",b="b",c="c")
 
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
@@ -22,11 +30,8 @@ config = {
 }
 
 
-data = {"name": "Mortimer 'Morty' Smith"}
-
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
-# db.child("users").child("Morty").set(data)
 
 
 my_bot = Bot(command_prefix = "!")
@@ -69,7 +74,15 @@ def convertToHours(obj):
         elif obj[hero] < 3600:
             obj[hero] = str(obj[hero] / 60) + "m"
     return obj
-    
+
+def getHours(obj):
+    for hero in obj:
+        if obj[hero] >= 3600:
+            obj[hero] = obj[hero] / 3600
+        elif obj[hero] < 3600:
+            obj[hero] = obj[hero] / 60
+    return obj
+
 
 @my_bot.event
 async def on_ready():
@@ -142,8 +155,30 @@ async def time(ctx, mode):
                         secs_time = time * 3600
 
                     time_map[hero] = secs_time
-        time_obj = convertToHours(OrderedDict(sorted(time_map.items(), key=lambda t: t[1], reverse = True)))
-        return await my_bot.say(" "+str(json.dumps(time_obj, indent=0).replace("{", "").replace("}", "")))
+
+        time_map = OrderedDict(sorted(time_map.items(), key=lambda t: t[1], reverse = True))
+
+        xs = list(time_map.values())
+        xs = [float(x) / 3600 for x in xs]
+        ys = np.arange(len(list(time_map.keys())))
+        heros = tuple(time_map.keys())
+
+
+        rcdefaults()
+        fig, ax = plt.subplots()
+        ax.barh(ys, xs, align='center', color='green')
+        ax.set_yticks(ys)
+        ax.set_yticklabels(heros)
+        ax.invert_yaxis()
+        ax.set_xlabel('Hours')
+        if mode == 'q':
+            disp_mode = 'quickplay'
+        elif mode == 'c':
+            disp_mode = 'competitive'
+        ax.set_title('Hours Played (' + disp_mode + ')')
+        fig.savefig('f.png')
+        await my_bot.send_file(ctx.message.channel, 'f.png')
+        os.remove('f.png')
 
 @my_bot.command()
 async def h():
@@ -191,7 +226,20 @@ async def h():
                             "Sombra\n" \
                             "Ana\n" \
                             )
-
+@my_bot.command(pass_context=True)
+async def plot(ctx):
+    y = [2,4,6,8,10,12,14,16,18,20]
+    x = np.arange(10)
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x, y, label='$y = numbers')
+    plt.title('Legend inside')
+    ax.legend()
+    #plt.show()
+ 
+    fig.savefig('plot.png')
+    await my_bot.send_file(ctx.message.channel, 'plot.png')
+    os.remove('plot.png')
 
 
 
