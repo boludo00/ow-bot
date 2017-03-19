@@ -135,10 +135,12 @@ async def statz(ctx, hero, mode):
 @my_bot.command(pass_context=True)
 async def time(ctx, mode):
     snowflake = ctx.message.author.id
+    print (snowflake)
     users = db.child("owbot").get().val()
 
     if snowflake in users:
         user_data = get_data(snowflake)
+        tag = user_data['btag']
         resp = get_response(user_data, mode)
         time_map = dict()
         for hero, hero_data in resp.items():
@@ -175,10 +177,12 @@ async def time(ctx, mode):
             disp_mode = 'quickplay'
         elif mode == 'c':
             disp_mode = 'competitive'
-        ax.set_title('Hours Played (' + disp_mode + ')')
+        ax.set_title(tag + '\nHours Played (' + disp_mode + ')')
         fig.savefig('f.png')
         await my_bot.send_file(ctx.message.channel, 'f.png')
         os.remove('f.png')
+    else:
+        print("oops")
 
 @my_bot.command()
 async def h():
