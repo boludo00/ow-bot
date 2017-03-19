@@ -1,1 +1,1 @@
-web: python3 owbot.py
+worker: python3 owbot.py
