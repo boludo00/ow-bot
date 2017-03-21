@@ -21,11 +21,11 @@ ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 
 config = {
-  "apiKey": "apiKey",
-  "authDomain": "projectId.firebaseapp.com",
-  "databaseURL": "https://brilliant-torch-8374.firebaseio.com/",
-  "storageBucket": "gs://brilliant-torch-8374.appspot.com/",
-  "serviceAccount": "brilliant-torch-8374-firebase-adminsdk-3nctk-299b7654aa.json"
+    apiKey: "AIzaSyCBqo72uWGeOKEEBbjg4gzHhvtFHJqtj8k",
+    authDomain: "brilliant-torch-8374.firebaseapp.com",
+    databaseURL: "https://brilliant-torch-8374.firebaseio.com",
+    storageBucket: "brilliant-torch-8374.appspot.com",
+    messagingSenderId: "251897490818"
 }
 
 
