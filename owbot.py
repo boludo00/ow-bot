@@ -14,10 +14,9 @@ from pylab import *
 import os
 
 
-
-
 phoney_db = dict()
 
+BOT_TOKEN = os.environ['BOT_TOKEN']
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 
@@ -246,11 +245,7 @@ async def plot(ctx):
     os.remove('plot.png')
 
 
-
 def verify_battletag(btag):
     return re.match("\w+-\d{4}", btag)
 
-with open("info.txt") as f:
-    token = f.read()
-
-my_bot.run(token)
+my_bot.run(BOT_TOKEN)
