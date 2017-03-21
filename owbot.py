@@ -41,6 +41,7 @@ def make_request(btag, system, mode, server=""):
     print("pinging " + url)
     resp = requests.get(url)
     obj = json.loads(resp.text)
+    print("Done!")
     return obj
 
 def get_data(user):
