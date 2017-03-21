@@ -131,7 +131,8 @@ async def statz(ctx, hero, mode):
 
     else:
         print("Couldnt locate Snowflake.")
-    
+
+
 @my_bot.command(pass_context=True)
 async def time(ctx, mode):
     snowflake = ctx.message.author.id
@@ -181,8 +182,6 @@ async def time(ctx, mode):
         fig.savefig('f.png')
         await my_bot.send_file(ctx.message.channel, 'f.png')
         os.remove('f.png')
-    else:
-        print("oops")
 
 @my_bot.command()
 async def h():
