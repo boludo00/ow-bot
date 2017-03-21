@@ -1,4 +1,7 @@
-“venv”
-".pyc"
-"resp.json"
+venv/
+__pycache__
+resp.json
+time_data.json
+*ipynb
+.vscode
 
