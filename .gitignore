@@ -5,4 +5,6 @@ time_data.json
 *ipynb
 .vscode
 parser.py
+public/
+functions/
 
