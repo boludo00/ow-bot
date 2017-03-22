@@ -14,18 +14,16 @@ from pylab import *
 import os
 
 
-phoney_db = dict()
-
-BOT_TOKEN = os.environ['BOT_TOKEN']
+# BOT_TOKEN = os.environ['BOT_TOKEN']
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 
 config = {
-    apiKey: "AIzaSyCBqo72uWGeOKEEBbjg4gzHhvtFHJqtj8k",
-    authDomain: "brilliant-torch-8374.firebaseapp.com",
-    databaseURL: "https://brilliant-torch-8374.firebaseio.com",
-    storageBucket: "brilliant-torch-8374.appspot.com",
-    messagingSenderId: "251897490818"
+    "apiKey": "AIzaSyCBqo72uWGeOKEEBbjg4gzHhvtFHJqtj8k",
+    "authDomain": "brilliant-torch-8374.firebaseapp.com",
+    "databaseURL": "https://brilliant-torch-8374.firebaseio.com/",
+    "storageBucket": "brilliant-torch-8374.appspot.com",
+    "messagingSenderId": "251897490818"
 }
 
 
@@ -102,13 +100,11 @@ async def on_message(message):
             server = args[2]
 
         snowflake = message.author.id
-        phoney_db[snowflake] = dict(btag=btag, system=system) 
+        entry = dict()
+        entry[snowflake] = dict(btag=btag, system=system)
         if server != "":
-            phoney_db[snowflake].update(dict(server=server))
-        
-        # add this entry to the db
-        db.child("owbot").set(phoney_db)
-
+            entry[snowflake].update(dict(server=server))
+        db.child("owbot").child(snowflake).set(entry[snowflake])
         await my_bot.send_message(message.channel, 'Say hello')
         msg = await my_bot.wait_for_message(author=message.author, content='hello')
         await my_bot.send_message(message.channel, 'Hello.')
@@ -127,7 +123,7 @@ async def statz(ctx, hero, mode):
                  hero = key
 
         for cat in resp[hero]:
-            await my_bot.say(cat + "\n" + str(json.dumps(resp[hero][cat], indent = 4)).replace("{", "").replace("}", "") +"\n")
+            await my_bot.say("```python\n"+cat + "\n" + str(json.dumps(resp[hero][cat], indent = 4)).replace("{", "").replace("}", "") +"```\n")
 
     else:
         print("Couldnt locate Snowflake.")
