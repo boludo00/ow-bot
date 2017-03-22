@@ -14,7 +14,7 @@ from pylab import *
 import os
 
 
-# BOT_TOKEN = os.environ['BOT_TOKEN']
+BOT_TOKEN = os.environ['BOT_TOKEN']
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 
