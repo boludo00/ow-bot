@@ -13,8 +13,8 @@ import numpy as np
 from pylab import *
 import os
 
-
-BOT_TOKEN = os.environ['BOT_TOKEN']
+test_token = "MjkxMDM4MzA2MDYwNDY4MjI0.C-lPqw.7pngM2sKkkXeYXKfXRjhSfLEga8"
+# BOT_TOKEN = os.environ['BOT_TOKEN']
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
 FIREBASE = "https://brilliant-torch-8374.firebaseio.com/"
 
@@ -111,6 +111,11 @@ async def on_message(message):
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
+
+    # handle this soldier 76 case differently (this is lazy)
+    if hero.lower() == "soldier:76":
+        hero = "soldier: 76"
+
     snowflake = ctx.message.author.id
 
     users = db.child("owbot").get().val()
@@ -123,7 +128,7 @@ async def statz(ctx, hero, mode):
                  hero = key
 
         for cat in resp[hero]:
-            await my_bot.say("```python\n"+cat + "\n" + str(json.dumps(resp[hero][cat], indent = 4)).replace("{", "").replace("}", "") +"```\n")
+            await my_bot.say("```python\n"+ cat + "\n" + str(json.dumps(resp[hero][cat], indent = 4)).replace("{", "").replace("}", "") +"```\n")
 
     else:
         print("Couldnt locate Snowflake.")
@@ -134,6 +139,8 @@ async def time(ctx, mode):
     snowflake = ctx.message.author.id
     print (snowflake)
     users = db.child("owbot").get().val()
+
+    plt.xkcd()
 
     if snowflake in users:
         user_data = get_data(snowflake)
@@ -244,4 +251,4 @@ async def plot(ctx):
 def verify_battletag(btag):
     return re.match("\w+-\d{4}", btag)
 
-my_bot.run(BOT_TOKEN)
+my_bot.run(test_token)
