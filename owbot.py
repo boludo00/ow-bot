@@ -43,6 +43,8 @@ def make_request(btag, system, mode, server=""):
     url = ENDPOINT + btag + "/" + mode  + "/" + system + "/" + server
     print("pinging " + url)
     resp = requests.get(url)
+    if resp.status_code == 500:
+        return None
     obj = json.loads(resp.text)
     print("Done!")
     return obj
@@ -157,7 +159,6 @@ async def on_message(message):
             sys = args[0]
             server = args[1]
 
-            
             users = db.child("owbot").get()
             for u in users.each():
                 if snowflake == u.key():
@@ -203,6 +204,8 @@ async def statz(ctx, hero, mode):
     if snowflake in users:
         user_data = users[snowflake]
         resp = get_response(user_data, mode)
+        if resp is None:
+            return await my_bot.say("Server error, make sure your gamertag is correct!")
             
         for key in resp:
              if key.lower() == hero.lower():
@@ -227,6 +230,8 @@ async def time(ctx, mode):
         user_data = get_data(snowflake)
         tag = user_data['btag']
         resp = get_response(user_data, mode)
+        if resp is None:
+            return await my_bot.say("Server error, double check your gamertag!")
         time_map = dict()
         for hero, hero_data in resp.items():
             if hero == "ALL HEROES":
@@ -276,10 +281,54 @@ async def winrate(ctx):
         user_data = get_data(snowflake)
         tag = user_data['btag']
         resp = get_response(user_data, "c")
+        if resp is None:
+            return await my_bot.say("Server error, double check your gamertag!")
         fig = graph_win_rate(resp, tag)
         py.image.save_as(fig, filename='win_rate_stacked.png')
         await my_bot.send_file(ctx.message.channel, 'win_rate_stacked.png')
         os.remove('win_rate_stacked.png')
+
+@my_bot.command(pass_context=True)
+async def dmg(ctx, mode):
+    snowflake = ctx.message.author.id
+    print (snowflake + " requesting average damage...")
+    users = db.child("owbot").get().val()
+    if snowflake in users:
+        user_data = get_data(snowflake)
+        tag = user_data['btag']
+        resp = get_response(user_data, mode)
+        if resp is None:
+            return await my_bot.say("Server error, double check your gamertag!")
+        fig = graph_avg_dmg(resp, tag, mode)
+        py.image.save_as(fig, filename='avg_damage.png')
+        await my_bot.send_file(ctx.message.channel, 'avg_damage.png')
+        os.remove('avg_damage.png')
+
+
+def graph_avg_dmg(data, user, mode):
+    hero_to_avgs = list()
+
+    if mode == "c":
+        mode = "competitive"
+    elif mode == "q":
+        mode = "quickplay"
+
+    for hero in data:
+        if hero == "ALL HEROES":
+            continue
+        if "Average" in data[hero]:
+            if "Damage Done - Average" in data[hero]["Average"]:
+                avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
+                hero_to_avgs.append((hero, avg_dmg))
+            
+    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
+    trace = go.Bar(x=list(zip(*hero_to_avgs))[0], y=list(zip(*hero_to_avgs))[1])
+    layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))
+    data = [trace]
+    
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
 
 def graph_win_rate(data, user):
     heros = []
@@ -336,7 +385,7 @@ async def h():
         help_msg = f.read()
     return await my_bot.say(help_msg)
     
-    
+
 @my_bot.command(pass_context=True)
 async def plot(ctx):
     y = [2,4,6,8,10,12,14,16,18,20]
