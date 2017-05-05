@@ -39,6 +39,7 @@ db = firebase.database()
 my_bot = Bot(command_prefix = "!")
 
 def make_request(btag, system, mode, server=""):
+    print(btag)
     url = ENDPOINT + btag + "/" + mode  + "/" + system + "/" + server
     print("pinging " + url)
     resp = requests.get(url)
@@ -98,11 +99,20 @@ async def on_message(message):
     if message.content.startswith('?init'):
         args = message.content[6:].split(" ")
         # process args 
-        btag = args[0]
-        system = args[1]
-        server = ""
+       
+        if len(args) == 3:
+            print("Detected gamertag with a space in it.")
+            btag = args[0] + "%20" + args[1]
+            system = args[2]
+            server = ""
+        else:
+            btag = args[0]
+            system = args[1]
+
         if system == "pc":
             server = args[2]
+            btag = args[0]
+            system = "pc"
 
         snowflake = message.author.id
         entry = dict()
@@ -113,6 +123,72 @@ async def on_message(message):
         await my_bot.send_message(message.channel, 'Say hello')
         msg = await my_bot.wait_for_message(author=message.author, content='hello')
         await my_bot.send_message(message.channel, 'Hello.')
+
+    elif message.content.startswith("?tag"):
+        user_exists = False
+        snowflake = message.author.id
+        tag = message.content[5:]
+        db_tag = tag.replace(" ", "%20")
+        print("Initiating battletag to: " + tag)
+        
+        users = db.child("owbot").get()
+        for u in users.each():
+            if snowflake == u.key():
+                user_exists = True
+
+        if not user_exists:
+            entry = dict()
+            entry[snowflake] = dict(btag=db_tag)
+            db.child("owbot").child(snowflake).set(entry[snowflake])
+            await my_bot.send_message(message.channel, "Thanks for signing up! Your gamertag is stored as " \
+            + tag + " in the database. Gamertags are case sensitive! If you need to \n" \
+            " correct your gamertag simply run ?tag again. Dont forget to run ?sys to record your console.")
+        else:
+            db.child("owbot").child(snowflake).update(dict(btag=db_tag))
+            await my_bot.send_message(message.channel, "Successfully stored gamertag " + tag)
+
+    elif message.content.startswith("?sys"):
+        user_exists = False
+        snowflake = message.author.id
+        args = message.content[5:].split(" ")
+        print("System arguments entered: " + str(args))
+        if len(args) > 1:
+
+            sys = args[0]
+            server = args[1]
+
+            
+            users = db.child("owbot").get()
+            for u in users.each():
+                if snowflake == u.key():
+                    user_exists = True
+                    break
+                print(u.key())
+            if not user_exists:
+                print("New snowflake detected")
+                entry = dict()
+                entry[snowflake] = dict(system=sys, server=server)
+                db.child("owbot").child(snowflake).set(entry[snowflake])
+
+            else:
+                print("Snowflake " + snowflake + " is in the db.")
+                db.child("owbot").child(snowflake).update(dict(system=sys, server=server))
+
+        else:
+            users = db.child("owbot").get()
+            for u in users.each():
+                if snowflake == u.key():
+                    user_exists = True
+                    break
+            sys = args[0]
+
+            if not user_exists:
+                entry = dict()
+                entry[snowflake] = dict(system=sys)
+                db.child("owbot").child(snowflake).set(entry[snowflake])
+            else:
+                db.child("owbot").child(snowflake).update(dict(system=sys))
+            
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
@@ -256,50 +332,11 @@ def graph_win_rate(data, user):
 
 @my_bot.command()
 async def h():
-    return await my_bot.say("Hi! I'm a bot here to provide useful Overwatch information!" \
-                           "Below are some helpful commands and examples on how to use them.\n\n" \
-                           "?init [battletag] [system] [server] (only if system is pc)\n" \
-                           "\t - Parameters:\n\t\t- battletag: Either the Xbox live gamertag, PSN " \
-                           "username, or PC battletag.\n\t\tPC battletags must include the 4 digits \n" \
-                           "following their battletag in the format of 'battletag-0069'.\n\t\t" \
-                           "system: The platform belonging to your battletag. Acceptable inputs are: " \
-                           "'xbl', 'psn', 'pc'.\n\t\t" \
-                           "server (If system = pc): The server belonging to the the battle net account. " \
-                           "Acceptable inputs are: 'us' (North America), 'kr' (Korea), 'eu' (Europe). "\
-                           "\t- Description:\n\t\tInitialize your battle.net information so I can determine "\
-                           "what information to send.\n" \
-                           "\t- Usage:\n\t\t?init HanzoGod-0420 pc us\n\t\t" \
-                           "?init daddy69 xbl\n" \
-                           
-                           "!stats [battletag] [platform] [mode] [hero]\n" \
-                           "\t- Displays all stats for specififc hero.\n" \
-                           "\t- Usage:\n\t\t!stats HughMungus-0420 pc comp McCree\n" \
-                           "\t\t!stats HanzoMain69 xbox qp Bastion\n\n" \
-                            "Available heros:\n" \
-                            "Reaper\n" 
-                            "Tracer\n" \
-                            "Mercy\n" \
-                            "Hanzo\n" \
-                            "Torbjörn\n" \
-                            "Reinhardt\n" \
-                            "Pharah\n" \
-                            "Winston\n" \
-                            "Widowmaker\n" \
-                            "Bastion\n" \
-                            "Symmetra\n" \
-                            "Zenyatta\n" \
-                            "Genji\n" \
-                            "Roadhog\n" \
-                            "McCree\n" \
-                            "Junkrat\n" \
-                            "Zarya\n" \
-                            "Soldier: 76\n" \
-                            "Lúcio\n" \
-                            "D.Va\n" \
-                            "Mei\n" \
-                            "Sombra\n" \
-                            "Ana\n" \
-                            )
+    with open("help.txt") as f:
+        help_msg = f.read()
+    return await my_bot.say(help_msg)
+    
+    
 @my_bot.command(pass_context=True)
 async def plot(ctx):
     y = [2,4,6,8,10,12,14,16,18,20]
