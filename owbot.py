@@ -189,14 +189,14 @@ async def time(ctx, mode):
         os.remove('f.png')
 
 @my_bot.command(pass_context=True)
-async def winrate(ctx, mode):
+async def winrate(ctx):
     snowflake = ctx.message.author.id
     print (snowflake)
     users = db.child("owbot").get().val()
     if snowflake in users:
         user_data = get_data(snowflake)
         tag = user_data['btag']
-        resp = get_response(user_data, mode)
+        resp = get_response(user_data, "c")
         fig = graph_win_rate(resp, tag)
         py.image.save_as(fig, filename='win_rate_stacked.png')
         await my_bot.send_file(ctx.message.channel, 'win_rate_stacked.png')
@@ -205,6 +205,7 @@ async def winrate(ctx, mode):
 def graph_win_rate(data, user):
     heros = []
     games_won_vs_lost = []
+
     for hero in data.keys():
         if hero == "ALL HEROES":
             continue
@@ -231,7 +232,7 @@ def graph_win_rate(data, user):
 
     data = [trace1, trace2]
     layout = go.Layout(
-        title="Win rate for " + user + " (competitive)",
+        title="Win rate for " + user + " (current season)",
         barmode='stack',
         xaxis=dict(tickangle=45),
         annotations=[
