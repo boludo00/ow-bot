@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pylab import *
 import os
+import plotly.plotly as py
+import plotly.graph_objs as go
 
 test_token = "MjkxMDM4MzA2MDYwNDY4MjI0.C-lPqw.7pngM2sKkkXeYXKfXRjhSfLEga8"
 # BOT_TOKEN = os.environ['BOT_TOKEN']
@@ -185,6 +187,65 @@ async def time(ctx, mode):
         fig.savefig('f.png')
         await my_bot.send_file(ctx.message.channel, 'f.png')
         os.remove('f.png')
+
+@my_bot.command(pass_context=True)
+async def winrate(ctx, mode):
+    snowflake = ctx.message.author.id
+    print (snowflake)
+    users = db.child("owbot").get().val()
+    if snowflake in users:
+        user_data = get_data(snowflake)
+        tag = user_data['btag']
+        resp = get_response(user_data, mode)
+        fig = graph_win_rate(resp, tag)
+        py.image.save_as(fig, filename='win_rate_stacked.png')
+        await my_bot.send_file(ctx.message.channel, 'win_rate_stacked.png')
+        os.remove('win_rate_stacked.png')
+
+def graph_win_rate(data, user):
+    heros = []
+    games_won_vs_lost = []
+    for hero in data.keys():
+        if hero == "ALL HEROES":
+            continue
+        if "Game" in data[hero]:
+            heros.append(hero)
+            num_won = eval(data[hero]["Game"]["Games Won"])
+            num_played = eval(data[hero]["Game"]["Games Played"])
+            games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
+
+    games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
+    won = list(zip(*games_won_vs_lost))[1]
+    total_played = list(zip(*games_won_vs_lost))[2]
+    lost = list(zip(*games_won_vs_lost))[3]
+    trace1 = go.Bar(
+        x=heros,
+        y=won,
+        name='Games Won'
+    )
+    trace2 = go.Bar(
+        x=heros,
+        y=total_played,
+        name='Games Played'
+    )
+
+    data = [trace1, trace2]
+    layout = go.Layout(
+        title="Win rate for " + user + " (competitive)",
+        barmode='stack',
+        xaxis=dict(tickangle=45),
+        annotations=[
+            dict(x=xi,y=yi,
+                text=str("{0:.2f}".format(float(yi)/zi)) if zi > 0 else 0,
+                xanchor='center',
+                yanchor='bottom',
+                showarrow=False,
+            ) for xi, yi, zi in zip(heros, won, total_played)]
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
 
 @my_bot.command()
 async def h():
