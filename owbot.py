@@ -213,10 +213,12 @@ def graph_win_rate(data, user):
         if hero == "ALL HEROES":
             continue
         if "Game" in data[hero]:
-            heros.append(hero)
-            num_won = eval(data[hero]["Game"]["Games Won"])
-            num_played = eval(data[hero]["Game"]["Games Played"])
-            games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
+            print(hero)
+            if "Games Won" in data[hero]["Game"]:
+                heros.append(hero)
+                num_won = eval(data[hero]["Game"]["Games Won"])
+                num_played = eval(data[hero]["Game"]["Games Played"])
+                games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
 
     games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
     heros = list(zip(*games_won_vs_lost))[0]
