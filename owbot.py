@@ -219,6 +219,7 @@ def graph_win_rate(data, user):
             games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
 
     games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
+    heros = list(zip(*games_won_vs_lost))[0]
     won = list(zip(*games_won_vs_lost))[1]
     total_played = list(zip(*games_won_vs_lost))[2]
     lost = list(zip(*games_won_vs_lost))[3]
