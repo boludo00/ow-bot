@@ -15,6 +15,9 @@ import os
 import plotly.plotly as py
 import plotly.graph_objs as go
 
+# authenticate with plotly
+py.sign_in("boludo00", "caCJFQ3nYafwrCXikwVv")
+
 test_token = "MjkxMDM4MzA2MDYwNDY4MjI0.C-lPqw.7pngM2sKkkXeYXKfXRjhSfLEga8"
 # BOT_TOKEN = os.environ['BOT_TOKEN']
 ENDPOINT = "https://enhanced-ow-api.herokuapp.com/"
