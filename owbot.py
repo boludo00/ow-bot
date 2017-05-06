@@ -94,14 +94,19 @@ def getHours(obj):
 async def on_ready():
     print("Client logged in")
 
+# async def new_message(message):
+#     await my_bot.process_commands(message)
+#     if()
+
+
 @my_bot.event
 async def on_message(message):
     # listen for init command
     await my_bot.process_commands(message)
     if message.content.startswith('?init'):
         args = message.content[6:].split(" ")
-        # process args 
-       
+        # process args
+
         if len(args) == 3:
             print("Detected gamertag with a space in it.")
             btag = args[0] + "%20" + args[1]
@@ -132,7 +137,7 @@ async def on_message(message):
         tag = message.content[5:]
         db_tag = tag.replace(" ", "%20")
         print("Initiating battletag to: " + tag)
-        
+
         users = db.child("owbot").get()
         for u in users.each():
             if snowflake == u.key():
@@ -189,7 +194,7 @@ async def on_message(message):
                 db.child("owbot").child(snowflake).set(entry[snowflake])
             else:
                 db.child("owbot").child(snowflake).update(dict(system=sys))
-            
+
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
@@ -206,7 +211,7 @@ async def statz(ctx, hero, mode):
         resp = get_response(user_data, mode)
         if resp is None:
             return await my_bot.say("Server error, make sure your gamertag is correct!")
-            
+
         for key in resp:
              if key.lower() == hero.lower():
                  hero = key
@@ -320,12 +325,12 @@ def graph_avg_dmg(data, user, mode):
             if "Damage Done - Average" in data[hero]["Average"]:
                 avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
                 hero_to_avgs.append((hero, avg_dmg))
-            
+
     hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
     trace = go.Bar(x=list(zip(*hero_to_avgs))[0], y=list(zip(*hero_to_avgs))[1])
     layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))
     data = [trace]
-    
+
     fig = go.Figure(data=data, layout=layout)
     return fig
 
@@ -384,7 +389,7 @@ async def h():
     with open("help.txt") as f:
         help_msg = f.read()
     return await my_bot.say(help_msg)
-    
+
 
 @my_bot.command(pass_context=True)
 async def plot(ctx):
@@ -396,7 +401,7 @@ async def plot(ctx):
     plt.title('Legend inside')
     ax.legend()
     #plt.show()
- 
+
     fig.savefig('plot.png')
     await my_bot.send_file(ctx.message.channel, 'plot.png')
     os.remove('plot.png')
