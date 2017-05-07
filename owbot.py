@@ -14,6 +14,7 @@ from pylab import *
 import os
 import plotly.plotly as py
 import plotly.graph_objs as go
+from functools import partial
 
 # authenticate with plotly
 py.sign_in("boludo00", "caCJFQ3nYafwrCXikwVv")
@@ -44,6 +45,7 @@ def make_request(btag, system, mode, server=""):
     print("pinging " + url)
     resp = requests.get(url)
     if resp.status_code == 500:
+        print("oops")
         return None
     obj = json.loads(resp.text)
     print("Done!")
@@ -93,11 +95,6 @@ def getHours(obj):
 @my_bot.event
 async def on_ready():
     print("Client logged in")
-
-# async def new_message(message):
-#     await my_bot.process_commands(message)
-#     if()
-
 
 @my_bot.event
 async def on_message(message):
@@ -195,6 +192,22 @@ async def on_message(message):
             else:
                 db.child("owbot").child(snowflake).update(dict(system=sys))
 
+@my_bot.command(pass_context=True)
+async def login(ctx, btag, mode = "quickplay"):
+
+    systems = {"pc", "xbl", "psn"}
+    servers = {"us", "eu", "kr"}
+    for system in systems:
+        if system == "pc":
+            for server in servers:
+                resp = make_request(btag, system, mode, server)
+                if resp == None:
+                    print("bye")
+                else:
+                    print("hello" + server)
+        else:
+            resp = make_request(btag, system, mode, server="")
+            print("console gamers" + system)
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
@@ -386,10 +399,16 @@ def graph_win_rate(data, user):
 
 @my_bot.command()
 async def h():
-    with open("help.txt") as f:
-        help_msg = f.read()
-    return await my_bot.say(help_msg)
+    await file_reader("help")
 
+@my_bot.command()
+async def commands():
+    await file_reader("commands")
+
+def file_reader(filename):
+    with open(filename + ".txt") as f:
+        msg = f.read()
+    return my_bot.say(msg)
 
 @my_bot.command(pass_context=True)
 async def plot(ctx):

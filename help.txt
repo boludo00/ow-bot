@@ -3,14 +3,14 @@ Greetings agents! I'm a bot here to provide stats related to your Overwatch care
 If this is your first time with me, simply run the **2 commands** below to record your information.
 
 
-?tag [gamertag] 
+?tag [gamertag]
     !! your gamertag is case sensitive !!
     -Example:
 
         **CONSOLE USER**
         ?tag HaNzO MaiNx420
 
-        **PC USER** 
+        **PC USER**
         ?tag INeedHealing-0069
 
 **CONSOLE USERS**
@@ -21,27 +21,3 @@ If this is your first time with me, simply run the **2 commands** below to recor
 
 **PC USERS**
 ?sys [system] [server]
-
-Below are some commands I currently support and their example usage.
-
-**!statz [hero] [mode]**
-This command displays all stats for a particular hero in either competitive play or quickplay.
---------------------Usage--------------------------
-    soldier: 76 stats for competitive play:
-    !statz soldier:76 c 
-
-    genji stats for quickplay
-    !statz genji q 
-
-**!time [mode]**
-This command displays a visualization of time played per hero in each game mode.
---------------------Usage--------------------------
-    
-    !time q
-    !time c
-
-**!winrate**
-Display a visual of your winrate for competitive play only
---------------------Usage--------------------------
-
-    !winrate
