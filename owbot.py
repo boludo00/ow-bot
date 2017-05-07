@@ -99,115 +99,150 @@ async def on_ready():
 @my_bot.event
 async def on_message(message):
     # listen for init command
-    await my_bot.process_commands(message)
-    if message.content.startswith('?init'):
-        args = message.content[6:].split(" ")
-        # process args
-
-        if len(args) == 3:
-            print("Detected gamertag with a space in it.")
-            btag = args[0] + "%20" + args[1]
-            system = args[2]
-            server = ""
-        else:
-            btag = args[0]
-            system = args[1]
-
-        if system == "pc":
-            server = args[2]
-            btag = args[0]
-            system = "pc"
-
-        snowflake = message.author.id
-        entry = dict()
-        entry[snowflake] = dict(btag=btag, system=system)
-        if server != "":
-            entry[snowflake].update(dict(server=server))
-        db.child("owbot").child(snowflake).set(entry[snowflake])
-        await my_bot.send_message(message.channel, 'Say hello')
-        msg = await my_bot.wait_for_message(author=message.author, content='hello')
-        await my_bot.send_message(message.channel, 'Hello.')
-
-    elif message.content.startswith("?tag"):
-        user_exists = False
-        snowflake = message.author.id
-        tag = message.content[5:]
-        db_tag = tag.replace(" ", "%20")
-        print("Initiating battletag to: " + tag)
-
-        users = db.child("owbot").get()
-        for u in users.each():
-            if snowflake == u.key():
-                user_exists = True
-
-        if not user_exists:
-            entry = dict()
-            entry[snowflake] = dict(btag=db_tag)
-            db.child("owbot").child(snowflake).set(entry[snowflake])
-            await my_bot.send_message(message.channel, "Thanks for signing up! Your gamertag is stored as " \
-            + tag + " in the database. Gamertags are case sensitive! If you need to \n" \
-            " correct your gamertag simply run ?tag again. Dont forget to run ?sys to record your console.")
-        else:
-            db.child("owbot").child(snowflake).update(dict(btag=db_tag))
-            await my_bot.send_message(message.channel, "Successfully stored gamertag " + tag)
-
-    elif message.content.startswith("?sys"):
-        user_exists = False
-        snowflake = message.author.id
-        args = message.content[5:].split(" ")
-        print("System arguments entered: " + str(args))
-        if len(args) > 1:
-
-            sys = args[0]
-            server = args[1]
-
-            users = db.child("owbot").get()
-            for u in users.each():
-                if snowflake == u.key():
-                    user_exists = True
-                    break
-                print(u.key())
-            if not user_exists:
-                print("New snowflake detected")
-                entry = dict()
-                entry[snowflake] = dict(system=sys, server=server)
-                db.child("owbot").child(snowflake).set(entry[snowflake])
-
-            else:
-                print("Snowflake " + snowflake + " is in the db.")
-                db.child("owbot").child(snowflake).update(dict(system=sys, server=server))
-
-        else:
-            users = db.child("owbot").get()
-            for u in users.each():
-                if snowflake == u.key():
-                    user_exists = True
-                    break
-            sys = args[0]
-
-            if not user_exists:
-                entry = dict()
-                entry[snowflake] = dict(system=sys)
-                db.child("owbot").child(snowflake).set(entry[snowflake])
-            else:
-                db.child("owbot").child(snowflake).update(dict(system=sys))
+    # await my_bot.process_commands(message)
+    # if message.content.startswith('?init'):
+    #     args = message.content[6:].split(" ")
+    #     # process args
+    #
+    #     if len(args) == 3:
+    #         print("Detected gamertag with a space in it.")
+    #         btag = args[0] + "%20" + args[1]
+    #         system = args[2]
+    #         server = ""
+    #     else:
+    #         btag = args[0]
+    #         system = args[1]
+    #
+    #     if system == "pc":
+    #         server = args[2]
+    #         btag = args[0]
+    #         system = "pc"
+    #
+    #     snowflake = message.author.id
+    #     entry = dict()
+    #     entry[snowflake] = dict(btag=btag, system=system)
+    #     if server != "":
+    #         entry[snowflake].update(dict(server=server))
+    #     db.child("owbot").child(snowflake).set(entry[snowflake])
+    #     await my_bot.send_message(message.channel, 'Say hello')
+    #     msg = await my_bot.wait_for_message(author=message.author, content='hello')
+    #     await my_bot.send_message(message.channel, 'Hello.')
+    #
+    # elif message.content.startswith("?tag"):
+    #     user_exists = False
+    #     snowflake = message.author.id
+    #     tag = message.content[5:]
+    #     db_tag = tag.replace(" ", "%20")
+    #     print("Initiating battletag to: " + tag)
+    #
+    #     users = db.child("owbot").get()
+    #     for u in users.each():
+    #         if snowflake == u.key():
+    #             user_exists = True
+    #
+    #     if not user_exists:
+    #         entry = dict()
+    #         entry[snowflake] = dict(btag=db_tag)
+    #         db.child("owbot").child(snowflake).set(entry[snowflake])
+    #         await my_bot.send_message(message.channel, "Thanks for signing up! Your gamertag is stored as " \
+    #         + tag + " in the database. Gamertags are case sensitive! If you need to \n" \
+    #         " correct your gamertag simply run ?tag again. Dont forget to run ?sys to record your console.")
+    #     else:
+    #         db.child("owbot").child(snowflake).update(dict(btag=db_tag))
+    #         await my_bot.send_message(message.channel, "Successfully stored gamertag " + tag)
+    #
+    # elif message.content.startswith("?sys"):
+    #     user_exists = False
+    #     snowflake = message.author.id
+    #     args = message.content[5:].split(" ")
+    #     print("System arguments entered: " + str(args))
+    #     if len(args) > 1:
+    #
+    #         sys = args[0]
+    #         server = args[1]
+    #
+    #         users = db.child("owbot").get()
+    #         for u in users.each():
+    #             if snowflake == u.key():
+    #                 user_exists = True
+    #                 break
+    #             print(u.key())
+    #         if not user_exists:
+    #             print("New snowflake detected")
+    #             entry = dict()
+    #             entry[snowflake] = dict(system=sys, server=server)
+    #             db.child("owbot").child(snowflake).set(entry[snowflake])
+    #
+    #         else:
+    #             print("Snowflake " + snowflake + " is in the db.")
+    #             db.child("owbot").child(snowflake).update(dict(system=sys, server=server))
+    #
+    #     else:
+    #         users = db.child("owbot").get()
+    #         for u in users.each():
+    #             if snowflake == u.key():
+    #                 user_exists = True
+    #                 break
+    #         sys = args[0]
+    #
+    #         if not user_exists:
+    #             entry = dict()
+    #             entry[snowflake] = dict(system=sys)
+    #             db.child("owbot").child(snowflake).set(entry[snowflake])
+    #         else:
+    #             db.child("owbot").child(snowflake).update(dict(system=sys))
 
 @my_bot.command(pass_context=True)
 async def login(ctx, btag, mode = "quickplay"):
 
-    systems = {"pc", "xbl", "psn"}
+    left = btag.rfind('-')
+    right = len(btag) - 5
+    exact = left - right
+
+    systems = {"xbl", "psn"}
     servers = {"us", "eu", "kr"}
-    for system in systems:
-        if system == "pc":
+
+    user_exists = False
+    snowflake = ctx.message.author.id
+
+    tag = ctx.message.content[7:]
+    db_tag = tag.replace(" ", "%20")
+
+    users = db.child("owbot").get()
+
+    for u in users.each():
+        if snowflake == u.key():
+            user_exists = True
+
+    if not user_exists:
+        print("New snowflake detected")
+        if exact == 0:
             for server in servers:
-                resp = make_request(btag, system, mode, server)
+                resp = make_request(btag, "pc", mode, server)
                 if resp == None:
-                    print("bye")
+                    print("rekt")
                 else:
-                    print("hello" + server)
+                    entry = dict()
+                    entry[snowflake] = dict(btag=btag, system="pc", server=server)
+                    db.child("owbot").child(snowflake).set(entry[snowflake])
+                    await my_bot.say("Successfully stored battletag")
         else:
-            resp = make_request(btag, system, mode, server="")
-            print("console gamers" + system)
+            for system in systems:
+                resp = make_request(btag, system, mode, server="")
+                if resp == None:
+                    print("rekt")
+                else:
+                    entry = dict()
+                    entry[snowflake] = dict(btag=btag, system=system, server="")
+                    db.child("owbot").child(snowflake).set(entry[snowflake])
+                    if system == "xbl":
+                        await my_bot.say("Successfully stored gamertag")
+                    else:
+                        await my_bot.say("Successfully stored psn")
+
+    else:
+        await my_bot.say("You're already in the system!")
+
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
