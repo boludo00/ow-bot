@@ -44,6 +44,8 @@ def make_request(btag, system, mode, server=""):
     url = ENDPOINT + btag + "/" + mode  + "/" + system + "/" + server
     print("pinging " + url)
     resp = requests.get(url)
+    for response in resp.history:
+        print(response.url)
     if resp.status_code == 500:
         print("oops")
         return None
@@ -99,7 +101,7 @@ async def on_ready():
 @my_bot.event
 async def on_message(message):
     # listen for init command
-    # await my_bot.process_commands(message)
+    await my_bot.process_commands(message)
     # if message.content.startswith('?init'):
     #     args = message.content[6:].split(" ")
     #     # process args
@@ -193,14 +195,18 @@ async def on_message(message):
     #             db.child("owbot").child(snowflake).update(dict(system=sys))
 
 @my_bot.command(pass_context=True)
+async def update(ctx, btag, mode = "quickplay"):
+    snowflake = ctx.message.author.id
+
+    tag = ctx.message.content[8:]
+    db_tag = tag.replace(" ", "%20")
+
+    users = db.child("owbot").get()
+
+    await login_searcher(btag, mode, snowflake, "update")
+
+@my_bot.command(pass_context=True)
 async def login(ctx, btag, mode = "quickplay"):
-
-    left = btag.rfind('-')
-    right = len(btag) - 5
-    exact = left - right
-
-    systems = {"xbl", "psn"}
-    servers = {"us", "eu", "kr"}
 
     user_exists = False
     snowflake = ctx.message.author.id
@@ -216,33 +222,55 @@ async def login(ctx, btag, mode = "quickplay"):
 
     if not user_exists:
         print("New snowflake detected")
-        if exact == 0:
-            for server in servers:
-                resp = make_request(btag, "pc", mode, server)
-                if resp == None:
-                    print("rekt")
-                else:
-                    entry = dict()
-                    entry[snowflake] = dict(btag=btag, system="pc", server=server)
-                    db.child("owbot").child(snowflake).set(entry[snowflake])
-                    await my_bot.say("Successfully stored battletag")
-        else:
-            for system in systems:
-                resp = make_request(btag, system, mode, server="")
-                if resp == None:
-                    print("rekt")
-                else:
-                    entry = dict()
-                    entry[snowflake] = dict(btag=btag, system=system, server="")
-                    db.child("owbot").child(snowflake).set(entry[snowflake])
-                    if system == "xbl":
-                        await my_bot.say("Successfully stored gamertag")
-                    else:
-                        await my_bot.say("Successfully stored psn")
-
+        await login_searcher(btag, mode, snowflake, "set")
     else:
-        await my_bot.say("You're already in the system!")
+        await my_bot.say("You're already in the system! Please use !update.")
 
+async def login_searcher(btag, mode, snowflake, func):
+    left = btag.rfind('-')
+    right = len(btag) - 5
+    exact = left - right
+
+    systems = {"xbl", "psn"}
+    servers = {"us", "eu", "kr"}
+
+    snowflake_entry = db.child("owbot").child(snowflake)
+
+    if exact == 0:
+        for server in servers:
+            resp = make_request(btag, "pc", mode, server)
+            if resp == None:
+                print("rekt")
+            else:
+                entry = dict()
+                entry[snowflake] = dict(btag=btag, system="pc", server=server)
+                if func == "set":
+                    snowflake_entry.set(entry[snowflake])
+                else:
+                    snowflake_entry.update(entry[snowflake])
+                await my_bot.say("Successfully stored battletag")
+                break
+    else:
+        for system in systems:
+            resp = make_request(btag, system, mode, server="")
+            if resp == None:
+                print("rekt")
+            else:
+                entry = dict()
+                entry[snowflake] = dict(btag=btag, system=system, server="")
+                if func == "set":
+                    snowflake_entry.set(entry[snowflake])
+                else:
+                    snowflake_entry.update(entry[snowflake])
+                if system == "xbl":
+                    await my_bot.say("Successfully stored gamertag")
+                else:
+                    await my_bot.say("Successfully stored psn")
+                break
+
+    data_entry = db.child("owbot").child(snowflake).child("btag").get()
+    if data_entry.val() != btag:
+        await my_bot.say("Please enter a valid login.")
 
 @my_bot.command(pass_context=True)
 async def statz(ctx, hero, mode):
