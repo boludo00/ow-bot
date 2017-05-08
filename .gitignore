@@ -7,4 +7,7 @@ time_data.json
 parser.py
 public/
 functions/
-
+token.txt
+sample.json
+.png
+notebooks/
