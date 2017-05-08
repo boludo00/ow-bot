@@ -39,6 +39,85 @@ db = firebase.database()
 
 my_bot = Bot(command_prefix = "!")
 
+def file_reader(filename):
+    with open(filename + ".txt") as f:
+        msg = f.read()
+    return my_bot.say(msg)
+
+def graph_avg_dmg(data, user, mode):
+    hero_to_avgs = list()
+
+    if mode == "c":
+        mode = "competitive"
+    elif mode == "q":
+        mode = "quickplay"
+
+    for hero in data:
+        if hero == "ALL HEROES":
+            continue
+        if "Average" in data[hero]:
+            if "Damage Done - Average" in data[hero]["Average"]:
+                avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
+                hero_to_avgs.append((hero, avg_dmg))
+
+    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
+    trace = go.Bar(x=list(zip(*hero_to_avgs))[0], y=list(zip(*hero_to_avgs))[1])
+    layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))
+    data = [trace]
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def graph_win_rate(data, user):
+    heros = []
+    games_won_vs_lost = []
+
+    for hero in data.keys():
+        if hero == "ALL HEROES":
+            continue
+        if "Game" in data[hero]:
+            print(hero)
+            if "Games Won" in data[hero]["Game"]:
+                heros.append(hero)
+                num_won = eval(data[hero]["Game"]["Games Won"])
+                num_played = eval(data[hero]["Game"]["Games Played"])
+                games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
+
+    games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
+    heros = list(zip(*games_won_vs_lost))[0]
+    won = list(zip(*games_won_vs_lost))[1]
+    total_played = list(zip(*games_won_vs_lost))[2]
+    lost = list(zip(*games_won_vs_lost))[3]
+    trace1 = go.Bar(
+        x=heros,
+        y=won,
+        name='Games Won'
+    )
+    trace2 = go.Bar(
+        x=heros,
+        y=total_played,
+        name='Games Played'
+    )
+
+    data = [trace1, trace2]
+    layout = go.Layout(
+        title="Win rate for " + user + " (current season)",
+        barmode='stack',
+        xaxis=dict(tickangle=45),
+        annotations=[
+            dict(x=xi,y=yi,
+                text=str("{0:.2f}".format(float(yi)/zi)) if zi > 0 else 0,
+                xanchor='center',
+                yanchor='bottom',
+                showarrow=False,
+            ) for xi, yi, zi in zip(heros, won, total_played)]
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
 def make_request(btag, system, mode, server=""):
     print(btag)
     url = ENDPOINT + btag + "/" + mode  + "/" + system + "/" + server
@@ -102,104 +181,14 @@ async def on_ready():
 async def on_message(message):
     # listen for init command
     await my_bot.process_commands(message)
-    # if message.content.startswith('?init'):
-    #     args = message.content[6:].split(" ")
-    #     # process args
-    #
-    #     if len(args) == 3:
-    #         print("Detected gamertag with a space in it.")
-    #         btag = args[0] + "%20" + args[1]
-    #         system = args[2]
-    #         server = ""
-    #     else:
-    #         btag = args[0]
-    #         system = args[1]
-    #
-    #     if system == "pc":
-    #         server = args[2]
-    #         btag = args[0]
-    #         system = "pc"
-    #
-    #     snowflake = message.author.id
-    #     entry = dict()
-    #     entry[snowflake] = dict(btag=btag, system=system)
-    #     if server != "":
-    #         entry[snowflake].update(dict(server=server))
-    #     db.child("owbot").child(snowflake).set(entry[snowflake])
-    #     await my_bot.send_message(message.channel, 'Say hello')
-    #     msg = await my_bot.wait_for_message(author=message.author, content='hello')
-    #     await my_bot.send_message(message.channel, 'Hello.')
-    #
-    # elif message.content.startswith("?tag"):
-    #     user_exists = False
-    #     snowflake = message.author.id
-    #     tag = message.content[5:]
-    #     db_tag = tag.replace(" ", "%20")
-    #     print("Initiating battletag to: " + tag)
-    #
-    #     users = db.child("owbot").get()
-    #     for u in users.each():
-    #         if snowflake == u.key():
-    #             user_exists = True
-    #
-    #     if not user_exists:
-    #         entry = dict()
-    #         entry[snowflake] = dict(btag=db_tag)
-    #         db.child("owbot").child(snowflake).set(entry[snowflake])
-    #         await my_bot.send_message(message.channel, "Thanks for signing up! Your gamertag is stored as " \
-    #         + tag + " in the database. Gamertags are case sensitive! If you need to \n" \
-    #         " correct your gamertag simply run ?tag again. Dont forget to run ?sys to record your console.")
-    #     else:
-    #         db.child("owbot").child(snowflake).update(dict(btag=db_tag))
-    #         await my_bot.send_message(message.channel, "Successfully stored gamertag " + tag)
-    #
-    # elif message.content.startswith("?sys"):
-    #     user_exists = False
-    #     snowflake = message.author.id
-    #     args = message.content[5:].split(" ")
-    #     print("System arguments entered: " + str(args))
-    #     if len(args) > 1:
-    #
-    #         sys = args[0]
-    #         server = args[1]
-    #
-    #         users = db.child("owbot").get()
-    #         for u in users.each():
-    #             if snowflake == u.key():
-    #                 user_exists = True
-    #                 break
-    #             print(u.key())
-    #         if not user_exists:
-    #             print("New snowflake detected")
-    #             entry = dict()
-    #             entry[snowflake] = dict(system=sys, server=server)
-    #             db.child("owbot").child(snowflake).set(entry[snowflake])
-    #
-    #         else:
-    #             print("Snowflake " + snowflake + " is in the db.")
-    #             db.child("owbot").child(snowflake).update(dict(system=sys, server=server))
-    #
-    #     else:
-    #         users = db.child("owbot").get()
-    #         for u in users.each():
-    #             if snowflake == u.key():
-    #                 user_exists = True
-    #                 break
-    #         sys = args[0]
-    #
-    #         if not user_exists:
-    #             entry = dict()
-    #             entry[snowflake] = dict(system=sys)
-    #             db.child("owbot").child(snowflake).set(entry[snowflake])
-    #         else:
-    #             db.child("owbot").child(snowflake).update(dict(system=sys))
+    if message.content.startswith('?hello'):
+        args = message.content[7:].split(" ")
 
 @my_bot.command(pass_context=True)
 async def update(ctx, btag, mode = "quickplay"):
     snowflake = ctx.message.author.id
 
-    tag = ctx.message.content[8:]
-    db_tag = tag.replace(" ", "%20")
+    db_tag = btag.replace(" ", "%20")
 
     users = db.child("owbot").get()
 
@@ -211,8 +200,7 @@ async def login(ctx, btag, mode = "quickplay"):
     user_exists = False
     snowflake = ctx.message.author.id
 
-    tag = ctx.message.content[7:]
-    db_tag = tag.replace(" ", "%20")
+    db_tag = btag.replace(" ", "%20")
 
     users = db.child("owbot").get()
 
@@ -386,79 +374,6 @@ async def dmg(ctx, mode):
         os.remove('avg_damage.png')
 
 
-def graph_avg_dmg(data, user, mode):
-    hero_to_avgs = list()
-
-    if mode == "c":
-        mode = "competitive"
-    elif mode == "q":
-        mode = "quickplay"
-
-    for hero in data:
-        if hero == "ALL HEROES":
-            continue
-        if "Average" in data[hero]:
-            if "Damage Done - Average" in data[hero]["Average"]:
-                avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
-                hero_to_avgs.append((hero, avg_dmg))
-
-    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
-    trace = go.Bar(x=list(zip(*hero_to_avgs))[0], y=list(zip(*hero_to_avgs))[1])
-    layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))
-    data = [trace]
-
-    fig = go.Figure(data=data, layout=layout)
-    return fig
-
-
-def graph_win_rate(data, user):
-    heros = []
-    games_won_vs_lost = []
-
-    for hero in data.keys():
-        if hero == "ALL HEROES":
-            continue
-        if "Game" in data[hero]:
-            print(hero)
-            if "Games Won" in data[hero]["Game"]:
-                heros.append(hero)
-                num_won = eval(data[hero]["Game"]["Games Won"])
-                num_played = eval(data[hero]["Game"]["Games Played"])
-                games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
-
-    games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
-    heros = list(zip(*games_won_vs_lost))[0]
-    won = list(zip(*games_won_vs_lost))[1]
-    total_played = list(zip(*games_won_vs_lost))[2]
-    lost = list(zip(*games_won_vs_lost))[3]
-    trace1 = go.Bar(
-        x=heros,
-        y=won,
-        name='Games Won'
-    )
-    trace2 = go.Bar(
-        x=heros,
-        y=total_played,
-        name='Games Played'
-    )
-
-    data = [trace1, trace2]
-    layout = go.Layout(
-        title="Win rate for " + user + " (current season)",
-        barmode='stack',
-        xaxis=dict(tickangle=45),
-        annotations=[
-            dict(x=xi,y=yi,
-                text=str("{0:.2f}".format(float(yi)/zi)) if zi > 0 else 0,
-                xanchor='center',
-                yanchor='bottom',
-                showarrow=False,
-            ) for xi, yi, zi in zip(heros, won, total_played)]
-    )
-
-    fig = go.Figure(data=data, layout=layout)
-    return fig
-
 
 @my_bot.command()
 async def h():
@@ -468,10 +383,6 @@ async def h():
 async def commands():
     await file_reader("commands")
 
-def file_reader(filename):
-    with open(filename + ".txt") as f:
-        msg = f.read()
-    return my_bot.say(msg)
 
 @my_bot.command(pass_context=True)
 async def plot(ctx):

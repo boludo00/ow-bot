@@ -21,3 +21,10 @@ Display a visual of your winrate for competitive play only
 --------------------Usage--------------------------
 
     !winrate
+
+**!dmg [mode]**
+Display a visual of your average damage across game modes
+--------------------Usage--------------------------
+
+    !dmg c
+    !dmg q

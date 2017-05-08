@@ -1,23 +1,18 @@
 Greetings agents! I'm a bot here to provide stats related to your Overwatch career.
 
-If this is your first time with me, simply run the **2 commands** below to record your information.
+If this is your first time with me, simply run the **login command** as demonstrated below to record your information.
+If you want to change your information to another account, use the !update [new_battletag] command.
 
+!login [battletag]
 
-?tag [gamertag]
-    !! your gamertag is case sensitive !!
-    -Example:
+**-----PC USERS-----**
 
-        **CONSOLE USER**
-        ?tag HaNzO MaiNx420
+    !login hanzoMain-4200 
+----------------------
 
-        **PC USER**
-        ?tag INeedHealing-0069
+**----CONSOLE USERS----**
 
-**CONSOLE USERS**
-?sys [system]
-    -Example:
-        ?sys xbl
-        ?sys psn
+    !login Tracist69
+-------------------------
 
-**PC USERS**
-?sys [system] [server]
+Note: Your gamertag/battleid is **case sensitive**
