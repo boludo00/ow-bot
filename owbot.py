@@ -68,6 +68,43 @@ def graph_avg_dmg(data, user, mode):
     fig = go.Figure(data=data, layout=layout)
     return fig
 
+def bubble_graph_avg_dmg(data, user, mode):
+    hero_to_avgs = list()
+
+    with open("../data/colormap.json") as f:
+        colors = json.load(f)
+
+    if mode == "c":
+        mode = "competitive"
+    elif mode == "q":
+        mode = "quickplay"
+        
+    for hero in data:
+        if hero == "ALL HEROES":
+            continue
+        if "Average" in data[hero]:
+            if "Game" in data[hero]:
+                avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
+                played = eval(data[hero]["Game"]["Games Played"])
+                hero_to_avgs.append((hero, avg_dmg, played, colors[hero]))
+    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
+
+    layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))    
+    trace0 = go.Scatter(
+    x=list(zip(*hero_to_avgs))[0],
+    y=list(zip(*hero_to_avgs))[1],
+    mode='markers',
+    marker=dict(
+        size=list(zip(*hero_to_avgs))[2],
+        sizeref = .8,
+        color=list(zip(*hero_to_avgs))[3]
+        )
+    )
+    data = [trace0]
+    
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
 
 def graph_win_rate(data, user):
     heros = []
@@ -368,7 +405,8 @@ async def dmg(ctx, mode):
         resp = get_response(user_data, mode)
         if resp is None:
             return await my_bot.say("Server error, double check your gamertag!")
-        fig = graph_avg_dmg(resp, tag, mode)
+        # fig = graph_avg_dmg(resp, tag, mode)
+        fig = bubble_graph_avg_dmg(resp, tag, mode)
         py.image.save_as(fig, filename='avg_damage.png')
         await my_bot.send_file(ctx.message.channel, 'avg_damage.png')
         os.remove('avg_damage.png')
