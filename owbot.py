@@ -71,7 +71,7 @@ def graph_avg_dmg(data, user, mode):
 def bubble_graph_avg_dmg(data, user, mode):
     hero_to_avgs = list()
 
-    with open("/data/colormap.json") as f:
+    with open("data/colormap.json") as f:
         colors = json.load(f)
 
     if mode == "c":
