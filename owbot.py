@@ -44,13 +44,8 @@ def file_reader(filename):
         msg = f.read()
     return my_bot.say(msg)
 
-def graph_avg_dmg(data, user, mode):
+def graph_avg_dmg(data, user):
     hero_to_avgs = list()
-
-    if mode == "c":
-        mode = "competitive"
-    elif mode == "q":
-        mode = "quickplay"
 
     for hero in data:
         if hero == "ALL HEROES":
@@ -62,7 +57,7 @@ def graph_avg_dmg(data, user, mode):
 
     hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
     trace = go.Bar(x=list(zip(*hero_to_avgs))[0], y=list(zip(*hero_to_avgs))[1])
-    layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))
+    layout = go.Layout(title=user + " Average Damage (quickplay)", xaxis=dict(tickangle=45))
     data = [trace]
 
     fig = go.Figure(data=data, layout=layout)
@@ -77,18 +72,21 @@ def bubble_graph_avg_dmg(data, user, mode):
     if mode == "c":
         mode = "competitive"
     elif mode == "q":
-        mode = "quickplay"
+        return graph_avg_dmg(data, user)
         
     for hero in data:
         if hero == "ALL HEROES":
             continue
+        print(hero)
+        print(json.dumps(data[hero], indent=4))
         if "Average" in data[hero]:
-            if "Game" in data[hero]:
-                avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
-                played = eval(data[hero]["Game"]["Games Played"])
-                hero_to_avgs.append((hero, avg_dmg, played, colors[hero]))
-    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
+            if "Damage Done - Average" in data[hero]["Average"]:
+                if "Game" in data[hero]:
+                    avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
+                    played = eval(data[hero]["Game"]["Games Played"])
+                    hero_to_avgs.append((hero, avg_dmg, played, colors[hero]))
 
+    hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
     layout = go.Layout(title=user + " Average Damage (" + mode + ")", xaxis=dict(tickangle=45))    
     trace0 = go.Scatter(
     x=list(zip(*hero_to_avgs))[0],
