@@ -77,13 +77,20 @@ def bubble_graph_avg_dmg(data, user, mode):
     for hero in data:
         if hero == "ALL HEROES":
             continue
-        print(hero)
-        print(json.dumps(data[hero], indent=4))
-        if "Average" in data[hero]:
-            if "Damage Done - Average" in data[hero]["Average"]:
+        # print(hero)
+        # print(json.dumps(data[hero], indent=4))
+        if "Combat" in data[hero]:
+            if "All Damage Done" in data[hero]["Combat"]:
                 if "Game" in data[hero]:
-                    avg_dmg = eval(data[hero]["Average"]["Damage Done - Average"].replace(",", ""))
+                    all_dmg = eval(data[hero]["Combat"]["All Damage Done"].replace(",", ""))
                     played = eval(data[hero]["Game"]["Games Played"])
+                    print(hero)
+                    print(all_dmg)
+                    print(played)
+                    if played == 0:
+                        avg_dmg = 0
+                    else:
+                        avg_dmg = float(all_dmg) / played
                     hero_to_avgs.append((hero, avg_dmg, played, colors[hero]))
 
     hero_to_avgs = sorted(hero_to_avgs, key=lambda x: x[1], reverse=True)
@@ -117,6 +124,7 @@ def graph_win_rate(data, user):
                 heros.append(hero)
                 num_won = eval(data[hero]["Game"]["Games Won"])
                 num_played = eval(data[hero]["Game"]["Games Played"])
+
                 games_won_vs_lost.append((hero, num_won, num_played, num_played-num_won))
 
     games_won_vs_lost = sorted(games_won_vs_lost, key=lambda x: x[2], reverse=True)
@@ -124,6 +132,7 @@ def graph_win_rate(data, user):
     won = list(zip(*games_won_vs_lost))[1]
     total_played = list(zip(*games_won_vs_lost))[2]
     lost = list(zip(*games_won_vs_lost))[3]
+    print(games_won_vs_lost)
     trace1 = go.Bar(
         x=heros,
         y=won,
@@ -131,8 +140,8 @@ def graph_win_rate(data, user):
     )
     trace2 = go.Bar(
         x=heros,
-        y=total_played,
-        name='Games Played'
+        y=lost,
+        name='Games Lost'
     )
 
     data = [trace1, trace2]
@@ -212,22 +221,22 @@ def getHours(obj):
 async def on_ready():
     print("Client logged in")
 
-@my_bot.event
-async def on_message(message):
-    # listen for init command
-    await my_bot.process_commands(message)
-    if message.content.startswith('?hello'):
-        args = message.content[7:].split(" ")
+# @my_bot.event(pass_context=True)
+# async def on_message(message):
+#     # listen for init command
+#     await my_bot.process_commands(message)
+#     if message.content.startswith('?hello'):
+#         args = message.content[7:].split(" ")
 
 @my_bot.command(pass_context=True)
-async def update(ctx, btag, mode = "quickplay"):
+async def update(ctx, btag):
     snowflake = ctx.message.author.id
 
     db_tag = btag.replace(" ", "%20")
 
     users = db.child("owbot").get()
 
-    await login_searcher(btag, mode, snowflake, "update")
+    await login_searcher(btag, "quickplay", snowflake, "update")
 
 @my_bot.command(pass_context=True)
 async def login(ctx, btag, mode = "quickplay"):
