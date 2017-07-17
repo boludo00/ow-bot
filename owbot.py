@@ -216,6 +216,36 @@ def getHours(obj):
             obj[hero] = obj[hero] / 60
     return obj
 
+def elim_min(resp, hero):
+    # if hero in resp:
+    total_elims = eval(resp[hero]["Combat"]["Eliminations"])
+    time_string = resp[hero]["Game"]["Time Played"]
+    
+    time = int(re.search("\d+", time_string).group(0))
+
+    if "hour" in time_string:
+        min_time = time * 60
+    
+    print(total_elims)
+    print(min_time)
+    return float(total_elims) / min_time
+
+def death_min(resp, hero):
+    # if hero in resp:
+    total_death = eval(resp[hero]["Deaths"]["Deaths"])
+    if "Environmental Deaths" in resp[hero]["Deaths"]:
+        total_death += eval(resp[hero]["Deaths"]["Environmental Deaths"])
+    time_string = resp[hero]["Game"]["Time Played"]
+    
+    time = int(re.search("\d+", time_string).group(0))
+
+    if "hour" in time_string:
+        min_time = time * 60
+
+    print(total_death)
+    print(min_time)
+    return float(total_death) / min_time
+
 
 @my_bot.event
 async def on_ready():
@@ -329,6 +359,23 @@ async def statz(ctx, hero, mode):
 
     else:
         print("Couldnt locate Snowflake.")
+
+@my_bot.command(pass_context=True)
+async def summary(ctx, hero):
+    snowflake = ctx.message.author.id
+    users = db.child("owbot").get().val()
+
+    if snowflake in users:
+        user_data = get_data(snowflake)
+        tag = user_data['btag']
+        resp = get_response(user_data, "c")
+        if resp is None:
+            return await my_bot.say("Server error, double check your gamertag!")
+        
+        winrate = resp[hero]["Game"]["Win Percentage"] if "Win Percentage" in resp[hero]["Game"] else "0%"
+        dpm = round(death_min(resp, hero), 2)
+        epm = round(elim_min(resp, hero), 2)
+        await my_bot.say("**" + hero + "**" + "\n**Elims/min: **" + str(epm) + "\n**Deaths/min: **" + str(dpm) + "\n**Winrate: **" + winrate)
 
 
 @my_bot.command(pass_context=True)
