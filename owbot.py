@@ -217,14 +217,27 @@ def getHours(obj):
     return obj
 
 def elim_min(resp, hero):
-    # if hero in resp:
-    total_elims = eval(resp[hero]["Combat"]["Eliminations"])
+    # if hero in resp
+    if hero not in resp:
+        return -1
+    
+    total_elims = eval("".join(resp[hero]["Combat"]["Eliminations"].split(",")))
+
+    # total_elims = eval(resp[hero]["Combat"]["Eliminations"])
+    print("total_elims", total_elims)
     time_string = resp[hero]["Game"]["Time Played"]
     
     time = int(re.search("\d+", time_string).group(0))
 
+    print("time", time)
+    print("time_string", time_string)
+
     if "hour" in time_string:
+        print("detected hours")
         min_time = time * 60
+    else: 
+        print("minutes")
+        min_time = time
     
     print(total_elims)
     print(min_time)
@@ -232,6 +245,8 @@ def elim_min(resp, hero):
 
 def death_min(resp, hero):
     # if hero in resp:
+    if hero not in resp:
+        return -1
     total_death = eval(resp[hero]["Deaths"]["Deaths"])
     if "Environmental Deaths" in resp[hero]["Deaths"]:
         total_death += eval(resp[hero]["Deaths"]["Environmental Deaths"])
@@ -241,10 +256,43 @@ def death_min(resp, hero):
 
     if "hour" in time_string:
         min_time = time * 60
+    else:
+        min_time = time
 
     print(total_death)
     print(min_time)
     return float(total_death) / min_time
+
+def ult_game(resp, hero):
+    if hero not in resp:
+        return -1
+    # get ult name for specific hero
+    with open("data/ults.json") as f:
+        ult_map = json.load(f)
+    ult_name = ult_map[hero]
+
+    if "Ultimates Earned" in resp[hero]["Miscellaneous"]:
+        num_ults = eval(resp[hero]["Miscellaneous"]["Ultimates Earned"])
+    else:
+        return my_bot.say("No Ult data for " + hero)
+
+    if "Hero Specific" in resp[hero]:
+        ult_kills = eval(resp[hero]["Hero Specific"][ult_name + " Kills"])
+    else:
+        return -1
+
+    time_string = resp[hero]["Game"]["Time Played"]
+    
+    time = int(re.search("\d+", time_string).group(0))
+
+    if "hour" in time_string:
+        min_time = time * 60
+    else:
+        min_time = time
+
+    ults_min = float(ult_kills) / min_time
+    return ult_name, round(ults_min, 2)
+
 
 
 @my_bot.event
@@ -375,7 +423,9 @@ async def summary(ctx, hero):
         winrate = resp[hero]["Game"]["Win Percentage"] if "Win Percentage" in resp[hero]["Game"] else "0%"
         dpm = round(death_min(resp, hero), 2)
         epm = round(elim_min(resp, hero), 2)
-        await my_bot.say("**" + hero + "**" + "\n**Elims/min: **" + str(epm) + "\n**Deaths/min: **" + str(dpm) + "\n**Winrate: **" + winrate)
+        # u_name, uper_min = ult_game(resp, hero)
+        await my_bot.say("**" + hero + "**" + "\n**Elims / min: **" + str(epm) +
+                        "\n**Deaths / min: **" + str(dpm) + "\n**Winrate: **" + winrate)
 
 
 @my_bot.command(pass_context=True)
