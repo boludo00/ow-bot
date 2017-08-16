@@ -221,26 +221,19 @@ def elim_min(resp, hero):
     if hero not in resp:
         return -1
     
+    # parse string number and handle commas 
     total_elims = eval("".join(resp[hero]["Combat"]["Eliminations"].split(",")))
 
-    # total_elims = eval(resp[hero]["Combat"]["Eliminations"])
-    print("total_elims", total_elims)
     time_string = resp[hero]["Game"]["Time Played"]
     
     time = int(re.search("\d+", time_string).group(0))
 
-    print("time", time)
-    print("time_string", time_string)
-
     if "hour" in time_string:
-        print("detected hours")
         min_time = time * 60
     else: 
-        print("minutes")
         min_time = time
     
-    print(total_elims)
-    print(min_time)
+
     return float(total_elims) / min_time
 
 def death_min(resp, hero):
@@ -259,8 +252,7 @@ def death_min(resp, hero):
     else:
         min_time = time
 
-    print(total_death)
-    print(min_time)
+
     return float(total_death) / min_time
 
 def ult_game(resp, hero):
